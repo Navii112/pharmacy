@@ -23,12 +23,12 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
-  
+
 logging:
   level:
     org.hibernate.orm.jdbc.bind: trace
 
-    kakao:
-      rest:
-        api:
-          key: ${KAKAO_REST_API_KEY}
+kakao:
+  rest:
+    api:
+      key: ${KAKAO_REST_API_KEY}
