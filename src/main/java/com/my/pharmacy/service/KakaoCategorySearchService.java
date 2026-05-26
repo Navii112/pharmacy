@@ -1,6 +1,8 @@
 package com.my.pharmacy.service;
 
+import com.my.pharmacy.dto.DocumentDto;
 import com.my.pharmacy.dto.KakaoApiResponseDto;
+import com.my.pharmacy.dto.OutputDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -11,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -57,5 +60,40 @@ public class KakaoCategorySearchService {
                         httpEntity,
                         KakaoApiResponseDto.class
                 ).getBody();
+    }
+
+    // documentList를 받아서 OutputDto의 리스트로 변환
+    // 각 documentList 안에 있는 DocumentDto -> OutputDto 변환 후
+    // 다시 OutputDto 리스트에 저장
+    public List<OutputDto> makeOutputDto(
+            List<DocumentDto> documentList
+    ) {
+        // 전체 15개의 리스트가 들어온다.. 그 중 5개 출력
+        return documentList
+                .stream()
+                .map(x -> convertToOutputDto(x))
+                .limit(5)
+                .toList();
+    }
+
+    // 각각의 DocumentDto를 꺼내서 OutputDto 변환
+    private OutputDto convertToOutputDto(DocumentDto document) {
+
+        // 1. 길찾기 URL을 변수로 생성 (도착지 기준)
+        // 주의: 장소명에 쉼표(,)가 포함되어 있으면 URL이 깨질 수 있으므로 제거하거나 인코딩하는 것이 좋습니다.
+        String placeName = document.getPlaceName() != null ? document.getPlaceName().replace(",", "") : "목적지";
+
+        String directionUrl = String.format("https://map.kakao.com/link/to/%s,%s,%s",
+                placeName,
+                document.getLatitude(),
+                document.getLongitude());
+
+        // 2. OutputDto 변환 및 반환 (Builder 패턴 가정)
+        return OutputDto.builder()
+                .pharmacyName(document.getPlaceName())
+                .pharmacyAddress(document.getAddressName())
+                .directionURL(directionUrl)
+                .distance(document.getDistance())
+                .build();
     }
 }
